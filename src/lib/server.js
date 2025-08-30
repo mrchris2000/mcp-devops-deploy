@@ -259,7 +259,7 @@ server.tool(
                 requestBody.description = args.description;
             }
 
-            const result = await makeApiCall('/applicationProcessRequest', 'POST', requestBody);
+            const result = await makeApiCall('/applicationProcessRequest/request', 'POST', requestBody);
             
             return {
                 content: [{
@@ -307,7 +307,7 @@ server.tool(
                 requestBody.description = args.description;
             }
 
-            const result = await makeApiCall('/applicationProcessRequest', 'POST', requestBody);
+            const result = await makeApiCall('/applicationProcessRequest/request', 'POST', requestBody);
             
             const versionsList = args.versions.map(v => `  - ${v.component}: ${v.version}`).join('\n');
             
@@ -337,7 +337,7 @@ server.tool(
     },
     async (args) => {
         try {
-            const result = await makeApiCall(`/application/snapshots?application=${encodeURIComponent(args.application)}`);
+            const result = await makeApiCall(`/application/snapshotsInApplication?application=${encodeURIComponent(args.application)}`);
             
             if (result && Array.isArray(result)) {
                 const snapshotList = result.map(snapshot => 
@@ -525,7 +525,7 @@ server.tool(
                 requestBody.recurrencePattern = args.recurrencePattern;
             }
 
-            const result = await makeApiCall('/applicationProcessRequest', 'POST', requestBody);
+            const result = await makeApiCall('/applicationProcessRequest/request', 'POST', requestBody);
             
             return {
                 content: [{
@@ -751,6 +751,144 @@ server.tool(
     }
 );
 
+// Tool 13: List application processes for an application
+server.tool(
+    "list_application_processes",
+    "Get all application processes for a specific application. Use this to find the process needed for deployment.",
+    {
+        application: z.string().describe("Application ID from list_applications. REQUIRED: Must use ID, not name.")
+    },
+    async (args) => {
+        try {
+            const result = await makeApiCall(`/applicationProcess?application=${encodeURIComponent(args.application)}`);
+            
+            if (result && Array.isArray(result)) {
+                const processList = result.map(process => 
+                    `- ${process.name} (ID: ${process.id || 'N/A'}) - ${process.description || 'No description'}`
+                ).join('\n');
+                
+                return {
+                    content: [{
+                        type: 'text',
+                        text: `🔧 Found ${result.length} application processes:\n\n${processList}\n\n💡 CRITICAL: ALWAYS use the process IDs (shown in parentheses) for deployment operations - NOT the names.`
+                    }]
+                };
+            } else {
+                return {
+                    content: [{
+                        type: 'text',
+                        text: `🔧 No application processes found for application ${args.application}`
+                    }]
+                };
+            }
+        } catch (error) {
+            return {
+                content: [{
+                    type: 'text',
+                    text: `❌ Failed to retrieve application processes: ${error.message}`
+                }]
+            };
+        }
+    }
+);
+
+// Tool 14: List all components
+server.tool(
+    "list_components",
+    "Get information about all components on the server. Use this to find components that can be deployed.",
+    {
+        active: z.boolean().optional().describe("Optional: Filter for active components only")
+    },
+    async (args) => {
+        try {
+            let url = '/component';
+            if (args.active !== undefined) {
+                url += `?active=${args.active}`;
+            }
+            
+            const result = await makeApiCall(url);
+            
+            if (result && Array.isArray(result)) {
+                const componentList = result.map(component => 
+                    `- ${component.name} (ID: ${component.id || 'N/A'}) - ${component.description || 'No description'}`
+                ).join('\n');
+                
+                return {
+                    content: [{
+                        type: 'text',
+                        text: `📦 Found ${result.length} components:\n\n${componentList}\n\n💡 CRITICAL: ALWAYS use the component IDs (shown in parentheses) for deployment operations - NOT the names.`
+                    }]
+                };
+            } else {
+                return {
+                    content: [{
+                        type: 'text',
+                        text: `📦 No components found`
+                    }]
+                };
+            }
+        } catch (error) {
+            return {
+                content: [{
+                    type: 'text',
+                    text: `❌ Failed to retrieve components: ${error.message}`
+                }]
+            };
+        }
+    }
+);
+
+// Tool 15: Get component versions
+server.tool(
+    "get_component_versions",
+    "Get all versions for a specific component. Use this to find the version IDs needed for deployment.",
+    {
+        component: z.string().describe("Component ID from list_components. REQUIRED: Must use ID, not name."),
+        inactive: z.boolean().optional().describe("Optional: Include archived versions (default: false)"),
+        numResults: z.number().optional().describe("Optional: Limit the number of results returned")
+    },
+    async (args) => {
+        try {
+            let url = `/component/versions?component=${encodeURIComponent(args.component)}`;
+            if (args.inactive !== undefined) {
+                url += `&inactive=${args.inactive}`;
+            }
+            if (args.numResults !== undefined && args.numResults > 0) {
+                url += `&numResults=${args.numResults}`;
+            }
+            
+            const result = await makeApiCall(url);
+            
+            if (result && Array.isArray(result)) {
+                const versionList = result.map(version => 
+                    `- ${version.name} (ID: ${version.id || 'N/A'}) - Created: ${version.created || 'N/A'}`
+                ).join('\n');
+                
+                return {
+                    content: [{
+                        type: 'text',
+                        text: `📋 Found ${result.length} versions for component ${args.component}:\n\n${versionList}\n\n💡 CRITICAL: ALWAYS use the version IDs (shown in parentheses) for deployment operations - NOT the names.`
+                    }]
+                };
+            } else {
+                return {
+                    content: [{
+                        type: 'text',
+                        text: `📋 No versions found for component ${args.component}`
+                    }]
+                };
+            }
+        } catch (error) {
+            return {
+                content: [{
+                    type: 'text',
+                    text: `❌ Failed to retrieve component versions: ${error.message}`
+                }]
+            };
+        }
+    }
+);
+
 // Diagnostic Tool: Authentication diagnostics
 server.tool(
     "auth_diagnostics",
@@ -831,6 +969,9 @@ console.log("  8. list_environments_for_application - List application environme
 console.log("  9. compare_environment_snapshots - Compare inventories");
 console.log("  10. create_deployment_trigger - Set up automated triggers");
 console.log("  11. list_applications - List all applications");
+console.log("  12. list_application_processes - List application processes");
+console.log("  13. list_components - List all components");
+console.log("  14. get_component_versions - Get versions for a component");
 console.log("\n✅ Ready to handle deployment requests!");
 
 
