@@ -1,0 +1,32 @@
+# NPM Distribution
+node_modules/
+npm-debug.log*
+.npm
+
+# Development files
+.env
+notes.txt
+smithery.yaml
+
+# Build artifacts
+dist/
+build/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+test/
+tests/
+*.test.js
+*.spec.js
+
+# Documentation source
+docs/
