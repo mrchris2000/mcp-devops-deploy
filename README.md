@@ -34,11 +34,6 @@ export DEPLOY_SERVER_URL="https://your-deploy-server:8443"
 export DEPLOY_TOKEN="your-access-token"
 ```
 
-### Command Line Arguments
-```bash
-mcp-deploy-automation --server-url https://your-server:8443 --token your-token
-```
-
 ## Best Practices
 
 ### 🔑 Use IDs Instead of Names
@@ -184,94 +179,6 @@ Get information about all applications on the server.
 
 **Parameters:** None
 
-## Usage Examples
-
-### Deploy a Snapshot
-```javascript
-// Deploy the "v1.2.3" snapshot to production environment
-await deploySnapshotToEnvironment({
-    application: "MyApp",
-    snapshot: "v1.2.3",
-    environment: "Production",
-    applicationProcess: "Deploy Process",
-    description: "Production deployment of v1.2.3"
-});
-```
-
-### Deploy Specific Versions
-```javascript
-// Deploy specific component versions
-await deployComponentVersions({
-    application: "MyApp",
-    environment: "Staging",
-    applicationProcess: "Deploy Process",
-    versions: [
-        { component: "WebApp", version: "2.1.0" },
-        { component: "API", version: "1.5.2" },
-        { component: "Database", version: "latest" }
-    ]
-});
-```
-
-### Schedule a Deployment
-```javascript
-// Schedule a deployment for tomorrow at 2 AM
-await scheduleDeployment({
-    application: "MyApp",
-    environment: "Production",
-    applicationProcess: "Deploy Process",
-    date: "2025-08-28 02:00",
-    snapshot: "v1.2.4",
-    description: "Scheduled maintenance deployment"
-});
-```
-
-### Compare Environments
-```javascript
-// Compare staging vs production
-await compareEnvironmentSnapshots({
-    application: "MyApp",
-    sourceEnvironment: "Staging",
-    targetEnvironment: "Production"
-});
-```
-
-## Use with Claude Desktop
-
-Add the following to your Claude Desktop MCP configuration:
-
-```json
-{
-  "mcpServers": {
-    "deploy-automation": {
-      "command": "node",
-      "args": ["/path/to/mcp-deploy-automation/src/lib/server.js"],
-      "env": {
-        "DEPLOY_SERVER_URL": "https://your-deploy-server:8443",
-        "DEPLOY_TOKEN": "your-access-token"
-      }
-    }
-  }
-}
-```
-
-Or with command line arguments:
-
-```json
-{
-  "mcpServers": {
-    "deploy-automation": {
-      "command": "node",
-      "args": [
-        "/path/to/mcp-deploy-automation/src/lib/server.js",
-        "--server-url", "https://your-server:8443",
-        "--token", "your-access-token"
-      ]
-    }
-  }
-}
-```
-
 ## Error Handling
 
 The server provides detailed error messages and will indicate:
@@ -304,11 +211,3 @@ Contributions are welcome! Please read our contributing guidelines and submit pu
 For issues and questions:
 - GitHub Issues: https://github.com/securedevops/mcp-deploy-automation/issues
 - Documentation: https://github.com/securedevops/mcp-deploy-automation#readme
-
----
-
-**Note**: This MCP server is designed to work with DevOps Deploy and requires appropriate permissions and network access to your deployment server.
-**Parameters**:
-- `projectId` (string): The ID of the project containing the test
-- `downloadId` (string): The download ID for the result archive (from test execution results)
-**Usage**: Download detailed test logs and artifacts from completed test executions for further analysis and debugging.
