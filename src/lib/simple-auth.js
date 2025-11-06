@@ -7,6 +7,13 @@
  * It's a simplified approach that uses personal access tokens directly.
  */
 
+import https from 'https';
+
+// Handle self-signed certificates
+const httpsAgent = new https.Agent({
+    rejectUnauthorized: false
+});
+
 export class SimpleAuth {
     constructor(config) {
         this.serverURL = config.serverURL;
@@ -79,6 +86,7 @@ export class SimpleAuth {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                     // Note: No Authorization header needed - just send refresh_token in form data
                 },
+                agent: httpsAgent,  // Use HTTPS agent that accepts self-signed certificates
                 body: formData
             });
             

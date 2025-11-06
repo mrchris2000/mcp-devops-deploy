@@ -6,9 +6,16 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { config as loadEnv } from 'dotenv';
 import { createSimpleAuthFromEnv, SimpleAuth } from './simple-auth.js';
+import https from 'https';
 
 // Load environment variables from .env file if it exists
 loadEnv();
+
+// Handle self-signed certificates
+// This allows fetch to work with self-signed HTTPS certificates
+const httpsAgent = new https.Agent({
+    rejectUnauthorized: false
+});
 
 // Configuration from environment variables or command line arguments
 function getConfig() {
@@ -197,7 +204,8 @@ async function makeApiCall(endpoint, method = 'GET', body = null) {
         const headers = await getAuthHeaders();
         const options = {
             method,
-            headers
+            headers,
+            agent: httpsAgent  // Use HTTPS agent that accepts self-signed certificates
         };
 
         if (body && (method === 'POST' || method === 'PUT')) {
